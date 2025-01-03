@@ -7,7 +7,22 @@
 //gcc minesweeper.c -o minesweeper
 
 void Print_Grid(int rows, int cols, int** gameGrid, int** revealGrid) {
+    printf("\n    ");
+
+    for (int a = 0; a < cols; a++) {
+        printf("%d ", a);
+    }
+
+    printf("\n    ");
+
+    for (int c = 0; c < cols * 2 - 1; c++) {
+        printf("_");
+    }
+
+    printf("\n");
+
     for (int i = 0; i < rows; i++) {
+        printf("%d  |", i);
         for (int j = 0; j < cols; j++) {
             if (revealGrid[i][j] == 1) {
                 if (gameGrid[i][j] == -1) {
@@ -24,14 +39,6 @@ void Print_Grid(int rows, int cols, int** gameGrid, int** revealGrid) {
         printf("\n");
     }
     printf("\n");
-
-    // for (int i = 0; i < rows; i++) {
-    //     for (int j = 0; j < cols; j++) {
-    //         printf("%d ", gameGrid[i][j]);
-    //     }
-    //     printf("\n");
-    // }
-    // printf("\n");
 }
 
 int Within_Grid(int newRow, int newCol, int rows, int cols) {
@@ -105,10 +112,10 @@ int** Reveal_Neighbors(int rows, int cols, int userRow, int userCol, int** gameG
     return revealedGrid;
 }
 
-int Check_Win(int rows, int cols, int** revealedGrid) {
+int Check_Win(int rows, int cols, int** gameGrid, int** revealedGrid) {
     for (int i = 0; i < rows; i++) {
         for (int j = 0; j < cols; j++) {
-            if (revealedGrid[i][j] != 1) {
+            if (gameGrid[i][j] != -1 && revealedGrid[i][j] != 1) {
                 return 0;
             }
         }
@@ -125,61 +132,6 @@ int** Reveal_Mines(int rows, int cols, int** gameGrid, int** revealedGrid) {
         }
     }
     return revealedGrid;
-}
-
-void Start_Game(int rows, int cols, int** gameGrid, int** revealedGrid) {
-    int gameActive = 1;
-    char action;
-    int userRow;
-    int userCol;
-
-    while (getchar() != '\n');
-
-    while (gameActive) {
-        Print_Grid(rows, cols, gameGrid, revealedGrid);
-
-        Get_Action(&action, &userRow, &userCol);
-        if (!Validate_Action(action, userRow, userCol, rows, cols)) {
-            printf("Invalid Action\n");
-            continue;
-        }
-
-        if (action == 'q') {
-            printf("Quitting");
-            break;
-        }
-
-        if (action == 'r') {
-            revealedGrid[userRow][userCol] = 1;
-            if (gameGrid[userRow][userCol] == -1) {
-                revealedGrid = Reveal_Mines(rows, cols, gameGrid, revealedGrid);
-                Print_Grid(rows, cols, gameGrid, revealedGrid);
-                printf("You have lost\n");
-                break;
-            }
-
-            if (gameGrid[userRow][userCol] == 0) {
-                revealedGrid = Reveal_Neighbors(rows, cols, userRow, userCol, gameGrid, revealedGrid);
-            }
-
-            if (Check_Win(rows, cols, revealedGrid)) {
-                Print_Grid(rows, cols, gameGrid, revealedGrid);
-                printf("Congratuations, you have won!\n");
-                break;
-            }
-        }
-
-        if (action == 'f') {
-            if (revealedGrid[userRow][userCol] == 1) {
-                printf("Cannot flag a revealed cell\n");
-                continue;
-            } else if (revealedGrid[userRow][userCol] == -1) {
-                revealedGrid[userRow][userCol] = 0;
-            } else {
-                revealedGrid[userRow][userCol] = -1;
-            }
-        }
-    }
 }
 
 int** Calculate_Neighbors(int rows, int cols, int** grid) {
@@ -218,6 +170,86 @@ int** Calculate_Neighbors(int rows, int cols, int** grid) {
     return grid;
 }
 
+int** Move_Mine(int rows, int cols, int userRow, int userCol, int** gameGrid) {
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+            if (gameGrid[i][j] == 0 && (!(userRow == i && userCol == j))) {
+                gameGrid[i][j] = -1;
+                return gameGrid;
+            }
+        }
+    }
+}
+
+void Start_Game(int rows, int cols, int** gameGrid, int** revealedGrid) {
+    int firstMove = 1;
+    int gameActive = 1;
+    char action;
+    int userRow;
+    int userCol;
+
+    while (getchar() != '\n');
+
+    while (gameActive) {
+        Print_Grid(rows, cols, gameGrid, revealedGrid);
+
+        Get_Action(&action, &userRow, &userCol);
+        if (!Validate_Action(action, userRow, userCol, rows, cols)) {
+            printf("Invalid Action\n");
+            continue;
+        }
+
+        if (firstMove) {
+            if (action == 'f') {
+                printf("The first move cannot be a flag");
+                continue;
+            }
+            if (gameGrid[userRow][userCol] == -1) {
+                gameGrid[userRow][userCol] = 0;
+                gameGrid = Move_Mine(rows, cols, userRow, userCol, gameGrid);
+                gameGrid = Calculate_Neighbors(rows, cols, gameGrid);
+            }
+            firstMove = 0;
+        }
+
+        if (action == 'q') {
+            printf("Quitting");
+            break;
+        }
+
+        if (action == 'r') {
+            revealedGrid[userRow][userCol] = 1;
+            if (gameGrid[userRow][userCol] == -1) {
+                revealedGrid = Reveal_Mines(rows, cols, gameGrid, revealedGrid);
+                Print_Grid(rows, cols, gameGrid, revealedGrid);
+                printf("You have lost\n");
+                break;
+            }
+
+            if (gameGrid[userRow][userCol] == 0) {
+                revealedGrid = Reveal_Neighbors(rows, cols, userRow, userCol, gameGrid, revealedGrid);
+            }
+
+            if (Check_Win(rows, cols, gameGrid, revealedGrid)) {
+                Print_Grid(rows, cols, gameGrid, revealedGrid);
+                printf("Congratuations, you have won!\n");
+                break;
+            }
+        }
+
+        if (action == 'f') {
+            if (revealedGrid[userRow][userCol] == 1) {
+                printf("Cannot flag a revealed cell\n");
+                continue;
+            } else if (revealedGrid[userRow][userCol] == -1) {
+                revealedGrid[userRow][userCol] = 0;
+            } else {
+                revealedGrid[userRow][userCol] = -1;
+            }
+        }
+    }
+}
+
 int** Place_Mines(int rows, int cols, int numMines, int** grid) {
     int mineCounter = 0;
     int randrow;
@@ -251,8 +283,6 @@ int** Create_Game(int rows, int cols, int numMines) {
     }
 
     grid = Place_Mines(rows, cols, numMines, grid);
-
-    grid = Calculate_Neighbors(rows, cols, grid);
 
     return grid;
 }
