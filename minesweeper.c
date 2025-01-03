@@ -118,7 +118,7 @@ int Get_Mines(int rows, int cols, int difficulty) {
     int numMines;
 
     cells = rows * cols;
-    numMines = difficulty * 0.1 * cells;
+    numMines = (0.1 + (difficulty * 0.01)) * cells;
 
     return numMines;
 }
