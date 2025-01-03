@@ -72,6 +72,39 @@ int Validate_Action(char action, int userRow, int userCol, int row, int col) {
     return 1;
 }
 
+int** Reveal_Neighbors(int rows, int cols, int userRow, int userCol, int** gameGrid, int** revealedGrid) {
+    int newRow;
+    int newCol;
+    int neighbors[8][2] = {
+        {-1, -1},
+        {-1, 0},
+        {-1, 1},
+        {0, 1},
+        {1, 1},
+        {1, 0},
+        {1, -1},
+        {0, -1}
+    };
+
+    for (int i = 0; i < 8; i++) {
+        newRow = userRow + neighbors[i][0];
+        newCol = userCol + neighbors[i][1];
+
+        if (!Within_Grid(newRow, newCol, rows, cols) || revealedGrid[newRow][newCol] != 0) {
+            continue;
+        }
+
+        if (gameGrid[newRow][newCol] == 0) {
+            revealedGrid[newRow][newCol] = 1;
+            revealedGrid = Reveal_Neighbors(rows, cols, newRow, newCol, gameGrid, revealedGrid);
+        } else {
+            revealedGrid[newRow][newCol] = 1;
+        }
+    }
+
+    return revealedGrid;
+}
+
 void Start_Game(int rows, int cols, int** gameGrid, int** revealedGrid) {
     int gameActive = 1;
     char action;
@@ -97,7 +130,7 @@ void Start_Game(int rows, int cols, int** gameGrid, int** revealedGrid) {
         if (action == 'r') {
             revealedGrid[userRow][userCol] = 1;
             if (gameGrid[userRow][userCol] == 0) {
-                
+                revealedGrid = Reveal_Neighbors(rows, cols, userRow, userCol, gameGrid, revealedGrid);
             }
         }
 
@@ -223,7 +256,7 @@ int Get_Mines(int rows, int cols, int difficulty) {
 
     cells = rows * cols;
     numMines = (0.1 + (difficulty * 0.01)) * cells;
-
+    
     return numMines;
 }
 
