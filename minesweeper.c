@@ -13,10 +13,7 @@ void Print_Grid(int rows, int cols, int** grid) {
         }
         printf("\n");
     }
-}
-
-void Start_Game(int rows, int cols, int** grid) {
-    Print_Grid(rows, cols, grid);
+    printf("\n");
 }
 
 int Within_Grid(int newRow, int newCol, int rows, int cols) {
@@ -24,6 +21,62 @@ int Within_Grid(int newRow, int newCol, int rows, int cols) {
         return 1;
     }
     return 0;
+}
+
+void Get_Action(char* action, int* userRow, int* userCol){
+    char actionBuffer[10];
+    char* token;
+
+    printf("Please input an action, r to reveal, f to flag followed by x and y or just q to quit\n");
+
+    if (fgets(actionBuffer, sizeof(actionBuffer), stdin) != NULL) {
+        actionBuffer[strcspn(actionBuffer, "\n")] = '\0';
+        token = strtok(actionBuffer, " ");
+        *action = token[0];
+        
+        token = strtok(NULL, " ");
+        *userRow = atoi(token);
+
+        token = strtok(NULL, " ");
+        *userCol = atoi(token);
+    }
+}
+
+int Validate_Action(char action, int userRow, int userCol, int row, int col) {
+    if (!(action == 'q' || action == 'r' || action == 'f')) {
+        return 0;
+    }
+
+    if (!Within_Grid(userRow, userCol, row, col)) {
+        return 0;
+    }
+
+    return 1;
+}
+
+void Start_Game(int rows, int cols, int** gameGrid, int** revealedGrid) {
+    int gameActive = 1;
+    char action;
+    int userRow;
+    int userCol;
+
+    while (getchar() != '\n');
+
+    while (gameActive) {
+        // Print_Grid(rows, cols, revealedGrid);
+
+        Get_Action(&action, &userRow, &userCol);
+        if (!Validate_Action(action, userRow, userCol, rows, cols)) {
+            printf("Invalid Action\n");
+            continue;
+        }
+        printf("Action: %c Row: %d Col: %d\n", action, userRow, userCol);
+
+        if (action == 'q') {
+            printf("Quitting");
+            break;
+        }
+    }
 }
 
 int** Calculate_Neighbors(int rows, int cols, int** grid) {
@@ -101,6 +154,22 @@ int** Create_Game(int rows, int cols, int numMines) {
     return grid;
 }
 
+int** Create_Reveal(int rows, int cols) {
+    int **grid = (int **)malloc(rows * sizeof(int *));
+
+    for (int i = 0; i < rows; i++) {
+        grid[i] = (int *)malloc(cols * sizeof(int));
+    }
+
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+            grid[i][j] = 0;
+        }
+    }
+
+    return grid;
+}
+
 int Get_Input(char* text, int minValue, int maxValue) {
     int value;
 
@@ -129,20 +198,23 @@ int main() {
     int difficulty;
     int numMines;
     int** gameGrid;
+    int** revealedGrid;
 
     srand(time(NULL));
 
-    rows = Get_Input("Input the number of rows[1-10]: \n", 1, 15);
-    cols = Get_Input("Input the number of columns[1-10]: \n", 1, 15);
+    rows = Get_Input("Input the number of rows[1-15]: \n", 1, 15);
+    cols = Get_Input("Input the number of columns[1-15]: \n", 1, 15);
     difficulty = Get_Input("Input the difficulty level[1-9]: \n", 1, 9);
 
     numMines = Get_Mines(rows, cols, difficulty);
 
-    printf("rows: %d  columns: %d  mines: %d\n", rows, cols, numMines);
+    printf("rows: %d  columns: %d  mines: %d \n", rows, cols, numMines);
 
     gameGrid = Create_Game(rows, cols, numMines);
 
-    Start_Game(rows, cols, gameGrid);
+    revealedGrid = Create_Reveal(rows, cols);
+
+    Start_Game(rows, cols, gameGrid, revealedGrid);
 
     return 0;
 }
