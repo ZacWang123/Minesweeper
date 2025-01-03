@@ -19,7 +19,46 @@ void Start_Game(int rows, int cols, int** grid) {
     Print_Grid(rows, cols, grid);
 }
 
+int Within_Grid(int newRow, int newCol, int rows, int cols) {
+    if (newRow >= 0 && newRow < rows && newCol >= 0 && newCol < cols) {
+        return 1;
+    }
+    return 0;
+}
+
 int** Calculate_Neighbors(int rows, int cols, int** grid) {
+    int newRow;
+    int newCol;
+    int mineCounter = 0;
+    int neighbors[8][2] = {
+        {-1, -1},
+        {-1, 0},
+        {-1, 1},
+        {0, 1},
+        {1, 1},
+        {1, 0},
+        {1, -1},
+        {0, -1}
+    };
+
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+            mineCounter = 0;
+            if (grid[i][j] != -1) {
+                for (int k = 0; k < 8; k++) {
+                    newRow = i + neighbors[k][0];
+                    newCol = j + neighbors[k][1];
+                    if (Within_Grid(newRow, newCol, rows, cols)) {
+                        if (grid[newRow][newCol] == -1) {
+                            mineCounter += 1;
+                        }
+                    }
+                }
+                grid[i][j] = mineCounter;
+            }
+        }
+    }
+
     return grid;
 }
 
