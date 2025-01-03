@@ -105,6 +105,28 @@ int** Reveal_Neighbors(int rows, int cols, int userRow, int userCol, int** gameG
     return revealedGrid;
 }
 
+int Check_Win(int rows, int cols, int** revealedGrid) {
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+            if (revealedGrid[i][j] != 1) {
+                return 0;
+            }
+        }
+    }
+    return 1;
+}
+
+int** Reveal_Mines(int rows, int cols, int** gameGrid, int** revealedGrid) {
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+            if (gameGrid[i][j] == -1) {
+                revealedGrid[i][j] = 1;
+            }
+        }
+    }
+    return revealedGrid;
+}
+
 void Start_Game(int rows, int cols, int** gameGrid, int** revealedGrid) {
     int gameActive = 1;
     char action;
@@ -129,8 +151,21 @@ void Start_Game(int rows, int cols, int** gameGrid, int** revealedGrid) {
 
         if (action == 'r') {
             revealedGrid[userRow][userCol] = 1;
+            if (gameGrid[userRow][userCol] == -1) {
+                revealedGrid = Reveal_Mines(rows, cols, gameGrid, revealedGrid);
+                Print_Grid(rows, cols, gameGrid, revealedGrid);
+                printf("You have lost\n");
+                break;
+            }
+
             if (gameGrid[userRow][userCol] == 0) {
                 revealedGrid = Reveal_Neighbors(rows, cols, userRow, userCol, gameGrid, revealedGrid);
+            }
+
+            if (Check_Win(rows, cols, revealedGrid)) {
+                Print_Grid(rows, cols, gameGrid, revealedGrid);
+                printf("Congratuations, you have won!\n");
+                break;
             }
         }
 
