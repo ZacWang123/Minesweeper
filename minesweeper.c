@@ -207,9 +207,9 @@ void Start_Game(int rows, int cols, int** gameGrid, int** revealedGrid) {
             if (gameGrid[userRow][userCol] == -1) {
                 gameGrid[userRow][userCol] = 0;
                 gameGrid = Move_Mine(rows, cols, userRow, userCol, gameGrid);
-                gameGrid = Calculate_Neighbors(rows, cols, gameGrid);
             }
             firstMove = 0;
+            gameGrid = Calculate_Neighbors(rows, cols, gameGrid);
         }
 
         if (action == 'q') {
