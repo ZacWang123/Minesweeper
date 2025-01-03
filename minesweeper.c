@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <time.h>
 
 //gcc minesweeper.c -o minesweeper
 
@@ -18,7 +19,30 @@ void Start_Game(int rows, int cols, int** grid) {
     Print_Grid(rows, cols, grid);
 }
 
-int** Create_Grid(int rows, int cols, int difficulty) {
+int** Calculate_Neighbors(int rows, int cols, int** grid) {
+    return grid;
+}
+
+int** Place_Mines(int rows, int cols, int numMines, int** grid) {
+    int mineCounter = 0;
+    int randrow;
+    int randcol;
+    randrow = rand() % rows;
+    randcol = rand() % cols;
+
+    while (mineCounter < numMines) {
+        while (grid[randrow][randcol] != 0) {
+            randrow = rand() % rows;
+            randcol = rand() % cols;
+        }
+        grid[randrow][randcol] = -1;
+        mineCounter += 1;
+    }
+
+    return grid;
+}
+
+int** Create_Game(int rows, int cols, int numMines) {
     int **grid = (int **)malloc(rows * sizeof(int *));
 
     for (int i = 0; i < rows; i++) {
@@ -30,6 +54,10 @@ int** Create_Grid(int rows, int cols, int difficulty) {
             grid[i][j] = 0;
         }
     }
+
+    grid = Place_Mines(rows, cols, numMines, grid);
+
+    grid = Calculate_Neighbors(rows, cols, grid);
 
     return grid;
 }
@@ -46,21 +74,36 @@ int Get_Input(char* text, int minValue, int maxValue) {
     return value;
 }
 
+int Get_Mines(int rows, int cols, int difficulty) {
+    int cells;
+    int numMines;
+
+    cells = rows * cols;
+    numMines = difficulty * 0.1 * cells;
+
+    return numMines;
+}
+
 int main() {
     int rows;
     int cols;
     int difficulty;
-    int** grid;
+    int numMines;
+    int** gameGrid;
 
-    rows = Get_Input("Input the number of rows[1-10]: \n", 1, 10);
-    cols = Get_Input("Input the number of columns[1-10]: \n", 1, 10);
-    difficulty = Get_Input("Input the difficulty level[1-10]: \n", 1, 10);
+    srand(time(NULL));
 
-    printf("rows: %d  columns: %d  difficulty: %d\n", rows, cols, difficulty);
+    rows = Get_Input("Input the number of rows[1-10]: \n", 1, 15);
+    cols = Get_Input("Input the number of columns[1-10]: \n", 1, 15);
+    difficulty = Get_Input("Input the difficulty level[1-9]: \n", 1, 9);
 
-    grid = Create_Grid(rows, cols, difficulty);
+    numMines = Get_Mines(rows, cols, difficulty);
 
-    Start_Game(rows, cols, grid);
+    printf("rows: %d  columns: %d  mines: %d\n", rows, cols, numMines);
+
+    gameGrid = Create_Game(rows, cols, numMines);
+
+    Start_Game(rows, cols, gameGrid);
 
     return 0;
 }
