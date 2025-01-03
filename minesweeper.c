@@ -6,14 +6,32 @@
 
 //gcc minesweeper.c -o minesweeper
 
-void Print_Grid(int rows, int cols, int** grid) {
+void Print_Grid(int rows, int cols, int** gameGrid, int** revealGrid) {
     for (int i = 0; i < rows; i++) {
         for (int j = 0; j < cols; j++) {
-            printf("%d ", grid[i][j]);
+            if (revealGrid[i][j] == 1) {
+                if (gameGrid[i][j] == -1) {
+                    printf("* ");
+                } else {
+                    printf("%d ", gameGrid[i][j]);
+                }
+            } else if (revealGrid[i][j] == -1) {
+                printf("! ");
+            } else {
+                printf("- ");
+            }
         }
         printf("\n");
     }
     printf("\n");
+
+    // for (int i = 0; i < rows; i++) {
+    //     for (int j = 0; j < cols; j++) {
+    //         printf("%d ", gameGrid[i][j]);
+    //     }
+    //     printf("\n");
+    // }
+    // printf("\n");
 }
 
 int Within_Grid(int newRow, int newCol, int rows, int cols) {
@@ -33,7 +51,7 @@ void Get_Action(char* action, int* userRow, int* userCol){
         actionBuffer[strcspn(actionBuffer, "\n")] = '\0';
         token = strtok(actionBuffer, " ");
         *action = token[0];
-        
+
         token = strtok(NULL, " ");
         *userRow = atoi(token);
 
@@ -63,18 +81,35 @@ void Start_Game(int rows, int cols, int** gameGrid, int** revealedGrid) {
     while (getchar() != '\n');
 
     while (gameActive) {
-        // Print_Grid(rows, cols, revealedGrid);
+        Print_Grid(rows, cols, gameGrid, revealedGrid);
 
         Get_Action(&action, &userRow, &userCol);
         if (!Validate_Action(action, userRow, userCol, rows, cols)) {
             printf("Invalid Action\n");
             continue;
         }
-        printf("Action: %c Row: %d Col: %d\n", action, userRow, userCol);
 
         if (action == 'q') {
             printf("Quitting");
             break;
+        }
+
+        if (action == 'r') {
+            revealedGrid[userRow][userCol] = 1;
+            if (gameGrid[userRow][userCol] == 0) {
+                
+            }
+        }
+
+        if (action == 'f') {
+            if (revealedGrid[userRow][userCol] == 1) {
+                printf("Cannot flag a revealed cell\n");
+                continue;
+            } else if (revealedGrid[userRow][userCol] == -1) {
+                revealedGrid[userRow][userCol] = 0;
+            } else {
+                revealedGrid[userRow][userCol] = -1;
+            }
         }
     }
 }
